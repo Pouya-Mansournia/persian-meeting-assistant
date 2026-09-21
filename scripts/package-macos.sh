@@ -2,6 +2,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 npm run desktop:build
+# Tauri leaves the executable with a linker signature, which does not seal the
+# completed application bundle. Sign the finished bundle so macOS can launch it.
+codesign --force --deep --sign - src-tauri/target/release/bundle/macos/Jalaseh.app
+codesign --verify --deep --strict src-tauri/target/release/bundle/macos/Jalaseh.app
 mkdir -p artifacts/dmg-root
 ditto src-tauri/target/release/bundle/macos/Jalaseh.app artifacts/dmg-root/Jalaseh.app
 ln -sfn /Applications artifacts/dmg-root/Applications
