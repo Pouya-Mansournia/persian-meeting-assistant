@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+.pytest_cache/
+data/
+.env
+*.tsbuildinfo
+build/
+src-tauri/target/
+src-tauri/binaries/
+artifacts/
+test-results/
+playwright-report/
+src-tauri/gen/
+.DS_Store
