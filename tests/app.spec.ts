@@ -126,8 +126,12 @@ test("delete all meetings requires confirmation and clears the list", async ({
     return route.fulfill({ json: meetings });
   });
   await page.goto("/");
-  page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "حذف همه" }).click();
+  const confirmation = page.getByRole("dialog", {
+    name: "تأیید حذف همه جلسات",
+  });
+  await expect(confirmation).toContainText("قابل بازگشت نیست");
+  await confirmation.getByRole("button", { name: "بله، همه حذف شوند" }).click();
   await expect(page.getByText("جای اولین جلسه‌تان اینجاست")).toBeVisible();
   await expect(page.getByRole("button", { name: "حذف همه" })).toHaveCount(0);
 });

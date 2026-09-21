@@ -77,6 +77,7 @@ const CONNECTION_ERROR =
 function App() {
   const [savingTask, setSavingTask] = useState(false);
   const [deletingAll, setDeletingAll] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const interactionBusy = useRef(false);
   const [health, setHealth] = useState<{
@@ -174,12 +175,13 @@ function App() {
   }, [recording]);
   interactionBusy.current = recording || busy;
   useEffect(() => {
-    if (!modal && !settings) return;
+    if (!modal && !settings && !deleteConfirm) return;
     const previous = document.activeElement as HTMLElement | null;
     const handle = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !interactionBusy.current) {
         setModal(false);
         setSettings(false);
+        setDeleteConfirm(false);
       }
       if (event.key === "Tab") {
         const focusable = Array.from(
@@ -204,7 +206,7 @@ function App() {
       document.removeEventListener("keydown", handle);
       previous?.focus();
     };
-  }, [modal, settings]);
+  }, [modal, settings, deleteConfirm]);
   const current = meetings.find((m) => m.id === selected);
   async function record() {
     try {
@@ -285,19 +287,14 @@ function App() {
     }
   }
   async function deleteAllMeetings() {
-    if (
-      !meetings.length ||
-      !confirm(
-        `هر ${fa(meetings.length)} جلسه و فایل‌های صوتی آن‌ها برای همیشه حذف شوند؟`,
-      )
-    )
-      return;
+    if (!meetings.length) return;
     setDeletingAll(true);
     try {
       await api("/meetings", { method: "DELETE" });
       setMeetings([]);
       setSelected(null);
       setQuery("");
+      setDeleteConfirm(false);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -658,7 +655,7 @@ function App() {
                   <button
                     className="delete-all"
                     disabled={deletingAll}
-                    onClick={deleteAllMeetings}
+                    onClick={() => setDeleteConfirm(true)}
                   >
                     <Trash2 size={15} />
                     {deletingAll ? "در حال حذف…" : "حذف همه"}
@@ -741,24 +738,37 @@ function App() {
           </>
         )}
       </main>
-      {(modal || settings) && (
+      {(modal || settings || deleteConfirm) && (
         <div className="overlay">
           <section
             className="dialog"
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
-            aria-label={settings ? "تنظیمات" : "جلسه جدید"}
+            aria-label={
+              deleteConfirm
+                ? "تأیید حذف همه جلسات"
+                : settings
+                  ? "تنظیمات"
+                  : "جلسه جدید"
+            }
           >
             <div className="dialog-heading">
-              <h2>{settings ? "تنظیمات فضای کاری" : "یک گفتگوی تازه"}</h2>
+              <h2>
+                {deleteConfirm
+                  ? "حذف همهٔ جلسات"
+                  : settings
+                    ? "تنظیمات فضای کاری"
+                    : "یک گفتگوی تازه"}
+              </h2>
               <button
                 className="icon"
                 aria-label="بستن"
-                disabled={recording || busy}
+                disabled={recording || busy || deletingAll}
                 onClick={() => {
                   setModal(false);
                   setSettings(false);
+                  setDeleteConfirm(false);
                 }}
               >
                 <X size={20} />
@@ -769,7 +779,31 @@ function App() {
                 {error}
               </div>
             )}
-            {settings ? (
+            {deleteConfirm ? (
+              <div className="delete-confirmation">
+                <p>
+                  هر {fa(meetings.length)} جلسه و فایل‌های صوتی مرتبط برای همیشه
+                  حذف می‌شوند. این کار قابل بازگشت نیست.
+                </p>
+                <div className="row">
+                  <button
+                    className="secondary"
+                    disabled={deletingAll}
+                    onClick={() => setDeleteConfirm(false)}
+                  >
+                    انصراف
+                  </button>
+                  <button
+                    className="danger"
+                    disabled={deletingAll}
+                    onClick={deleteAllMeetings}
+                  >
+                    <Trash2 size={16} />
+                    {deletingAll ? "در حال حذف…" : "بله، همه حذف شوند"}
+                  </button>
+                </div>
+              </div>
+            ) : settings ? (
               <>
                 <div className="model-status">
                   <b>وضعیت پردازش محلی</b>

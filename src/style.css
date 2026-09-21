@@ -378,6 +378,29 @@ h1 em {
 .delete-all:disabled {
   opacity: 0.55;
 }
+.delete-confirmation p {
+  color: #5e665b;
+  line-height: 2;
+  margin: 4px 0 22px;
+}
+.delete-confirmation .row {
+  justify-content: flex-end;
+}
+.danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #a55245;
+  background: #a55245;
+  color: white;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-size: 12px;
+}
+.danger:disabled {
+  opacity: 0.55;
+}
 .search {
   display: flex;
   align-items: center;
