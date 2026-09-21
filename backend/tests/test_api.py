@@ -27,6 +27,29 @@ def test_persistence_actions_and_delete(client):
     assert client.get('/api/meetings/example').status_code == 404
 
 
+def test_delete_all_meetings_and_audio(client):
+    first_audio = main.DATA / 'first.audio'
+    second_audio = main.DATA / 'second.audio'
+    temporary_wav = main.DATA / 'example.wav'
+    first_audio.write_bytes(b'first')
+    second_audio.write_bytes(b'second')
+    temporary_wav.write_bytes(b'wav')
+    seed(client, audio_path=str(first_audio))
+    seed(client, id='second', audio_path=str(second_audio))
+
+    assert client.delete('/api/meetings').status_code == 204
+    assert client.get('/api/meetings').json() == []
+    assert not first_audio.exists()
+    assert not second_audio.exists()
+    assert not temporary_wav.exists()
+
+
+def test_delete_all_waits_for_active_processing(client):
+    seed(client, status='transcribing')
+    assert client.delete('/api/meetings').status_code == 409
+    assert client.get('/api/meetings/example').status_code == 200
+
+
 def test_invalid_uploads_leave_no_audio(client, monkeypatch):
     assert client.post('/api/meetings', data={'title':'جلسه'}, files={'audio':('test.wav', b'')}).status_code == 422
     monkeypatch.setattr(main, 'MAX_UPLOAD', 3)

@@ -111,6 +111,27 @@ test("meeting navigation, task update, search, and export", async ({
   );
 });
 
+test("delete all meetings requires confirmation and clears the list", async ({
+  page,
+}) => {
+  let meetings = [fixture()];
+  await page.route("**/api/health", (route) =>
+    route.fulfill({ json: { ready: true } }),
+  );
+  await page.route("**/api/meetings", (route) => {
+    if (route.request().method() === "DELETE") {
+      meetings = [];
+      return route.fulfill({ status: 204 });
+    }
+    return route.fulfill({ json: meetings });
+  });
+  await page.goto("/");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "حذف همه" }).click();
+  await expect(page.getByText("جای اولین جلسه‌تان اینجاست")).toBeVisible();
+  await expect(page.getByRole("button", { name: "حذف همه" })).toHaveCount(0);
+});
+
 test("microphone capture produces uploadable audio", async ({ page }) => {
   let uploaded = false;
   await page.route("**/api/health", (route) =>

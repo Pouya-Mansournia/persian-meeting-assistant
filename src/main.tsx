@@ -76,6 +76,7 @@ const CONNECTION_ERROR =
   "ارتباط با سرور برقرار نشد. لطفاً سرویس محلی جلسه را اجرا کنید.";
 function App() {
   const [savingTask, setSavingTask] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const interactionBusy = useRef(false);
   const [health, setHealth] = useState<{
@@ -281,6 +282,26 @@ function App() {
     } catch (e) {
       setError(String(e));
       return false;
+    }
+  }
+  async function deleteAllMeetings() {
+    if (
+      !meetings.length ||
+      !confirm(
+        `هر ${fa(meetings.length)} جلسه و فایل‌های صوتی آن‌ها برای همیشه حذف شوند؟`,
+      )
+    )
+      return;
+    setDeletingAll(true);
+    try {
+      await api("/meetings", { method: "DELETE" });
+      setMeetings([]);
+      setSelected(null);
+      setQuery("");
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setDeletingAll(false);
     }
   }
   async function toggleAction(meeting: Meeting, index: number) {
@@ -632,14 +653,26 @@ function App() {
               <h2>
                 جلسه‌های شما <span>{fa(meetings.length)}</span>
               </h2>
-              <label className="search">
-                <Search size={17} />
-                <input
-                  placeholder="جستجو در عنوان و متن جلسه‌ها..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </label>
+              <div className="list-actions">
+                {meetings.length > 0 && (
+                  <button
+                    className="delete-all"
+                    disabled={deletingAll}
+                    onClick={deleteAllMeetings}
+                  >
+                    <Trash2 size={15} />
+                    {deletingAll ? "در حال حذف…" : "حذف همه"}
+                  </button>
+                )}
+                <label className="search">
+                  <Search size={17} />
+                  <input
+                    placeholder="جستجو در عنوان و متن جلسه‌ها..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </label>
+              </div>
             </div>
             <section className="meeting-list">
               {meetings

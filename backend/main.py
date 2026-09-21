@@ -249,6 +249,19 @@ def meetings():
     return sorted(items, key=lambda m: m['started_at'], reverse=True)
 
 
+@app.delete('/api/meetings', status_code=204)
+def delete_all_meetings():
+    with connect() as db:
+        items = [json.loads(r[0]) for r in db.execute('SELECT document FROM meetings')]
+        if any(item['status'] not in ('ready', 'failed') for item in items):
+            raise HTTPException(409, 'Wait for processing before deleting all meetings')
+        for item in items:
+            if item['audio_path']:
+                Path(item['audio_path']).unlink(missing_ok=True)
+            (DATA / (item['id'] + '.wav')).unlink(missing_ok=True)
+        db.execute('DELETE FROM meetings')
+
+
 @app.get('/api/meetings/{mid}')
 def meeting(mid: str):
     return get(mid)
@@ -322,5 +335,6 @@ def delete(mid: str):
         raise HTTPException(409, 'Wait for processing before deleting')
     if item['audio_path']:
         Path(item['audio_path']).unlink(missing_ok=True)
+    (DATA / (mid + '.wav')).unlink(missing_ok=True)
     with connect() as db:
         db.execute('DELETE FROM meetings WHERE id=?', (mid,))

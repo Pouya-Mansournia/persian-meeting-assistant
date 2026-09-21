@@ -359,6 +359,25 @@ h1 em {
   border-radius: 5px;
   color: #7a8b6d;
 }
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.delete-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ead8d3;
+  background: #fffafa;
+  color: #a55245;
+  border-radius: 8px;
+  padding: 8px 11px;
+  font-size: 10px;
+}
+.delete-all:disabled {
+  opacity: 0.55;
+}
 .search {
   display: flex;
   align-items: center;
@@ -912,6 +931,13 @@ textarea {
   .list-heading {
     flex-wrap: wrap;
     gap: 4px;
+  }
+  .list-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .delete-all {
+    order: 2;
   }
   .search {
     width: 100%;
