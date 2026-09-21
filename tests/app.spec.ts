@@ -91,6 +91,14 @@ test("meeting navigation, task update, search, and export", async ({
   await page.getByPlaceholder("جستجو در عنوان و متن جلسه‌ها...").fill("علی");
   await page.getByRole("button", { name: /برنامه‌ریزی محصول/ }).click();
   await expect(page.getByText(m.intelligence.summary)).toBeVisible();
+  await page
+    .locator("header")
+    .getByRole("button", { name: "جلسه‌های من", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: /جلسه‌های شما/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /برنامه‌ریزی محصول/ }).click();
   await page.getByRole("button", { name: "متن کامل", exact: true }).click();
   await expect(page.getByText(m.segments[0].text)).toBeVisible();
   await page.getByRole("button", { name: "تصمیم‌ها", exact: true }).click();
@@ -109,6 +117,8 @@ test("meeting navigation, task update, search, and export", async ({
   expect(Buffer.concat(chunks).toString("utf8")).toContain(
     "- [x] استخراج دیتای سه ماه اخیر",
   );
+  await page.getByRole("button", { name: "فضای کاری", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "تنظیمات" })).toBeVisible();
 });
 
 test("delete all meetings requires confirmation and clears the list", async ({

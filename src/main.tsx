@@ -389,10 +389,25 @@ function App() {
       </aside>
       <main>
         <header>
-          <span>
-            فضای کاری <span className="slash">/</span>{" "}
-            {current ? "جزئیات جلسه" : "جلسه‌های من"}
-          </span>
+          <nav className="breadcrumbs" aria-label="مسیر صفحه">
+            <button onClick={() => setSettings(true)}>فضای کاری</button>
+            <span className="slash">/</span>
+            <button
+              className={!current ? "current" : ""}
+              onClick={() => {
+                setSelected(null);
+                setTab("summary");
+              }}
+            >
+              جلسه‌های من
+            </button>
+            {current && (
+              <>
+                <span className="slash">/</span>
+                <span className="current">جزئیات جلسه</span>
+              </>
+            )}
+          </nav>
           <span className="local">
             <i style={{ background: health?.ready ? "#759366" : "#c29a51" }} />{" "}
             {health?.ready ? "هوش مصنوعی آماده · فضای خصوصی" : "فضای خصوصی"}

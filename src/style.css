@@ -176,6 +176,22 @@ header {
   font-size: 11px;
   color: #829087;
 }
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+}
+.breadcrumbs button {
+  padding: 5px 0;
+  background: transparent;
+  color: #718078;
+  font-size: 11px;
+}
+.breadcrumbs button:hover {
+  color: #536a47;
+}
+.breadcrumbs .current {
+  color: #3f5147;
+}
 .slash {
   padding: 0 14px;
   color: #c3cac3;
