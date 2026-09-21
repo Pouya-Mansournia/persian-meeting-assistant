@@ -107,3 +107,47 @@ def test_settings_survive_backend_restart(client):
     main.initialize()
     assert client.get('/api/settings').json() == saved
     assert client.put('/api/settings', json={'vocabulary': 'a' * 3001}).status_code == 422
+
+
+
+def test_model_contract_requires_all_categories():
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        main.Extraction.model_validate({'summary': 'خلاصه'})
+    assert set(main.Extraction.model_json_schema()['required']) == {
+        'summary', 'decisions', 'actions', 'questions', 'topics'
+    }
+
+
+def test_extraction_never_marks_ai_tasks_done(monkeypatch):
+    import io
+    import json
+    output = dict(summary='خلاصه', decisions=[], actions=[dict(description='کار', owner=None, deadline=None, done=True)], questions=[], topics=[])
+    monkeypatch.setattr(main, 'urlopen', lambda *a, **kw: io.StringIO(json.dumps({'message': {'content': json.dumps(output)}})))
+    assert main.extract_chunk('متن')['actions'][0]['done'] is False
+
+
+def test_speech_readiness_uses_runtime_files_not_repository_docs(client, monkeypatch, tmp_path):
+    import io
+    import json
+    from faster_whisper import utils
+    (tmp_path / 'model.bin').write_bytes(b'weights')
+    calls = []
+    def resolve(model, *, local_files_only):
+        calls.append((model, local_files_only))
+        return str(tmp_path)
+    monkeypatch.setattr(utils, 'download_model', resolve)
+    monkeypatch.setattr(main.shutil, 'which', lambda name: '/test/ffmpeg')
+    monkeypatch.setattr(main, 'urlopen', lambda *args, **kwargs: io.StringIO(json.dumps({'models': [{'name': 'qwen2.5:7b'}]})))
+    result = client.get('/api/health').json()
+    assert result['ready'] is True
+    assert result['speech_ready'] is True
+    assert calls == [('large-v3', True)]
+
+
+
+def test_extraction_requires_explicit_owner_and_deadline_fields():
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        main.ExtractedAction.model_validate({'description': 'کار'})
+    assert set(main.ExtractedAction.model_json_schema()['required']) == {'description', 'owner', 'deadline'}

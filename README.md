@@ -74,7 +74,9 @@ Models are intentionally outside the installer. To reuse development weights in 
 
 ## Verification
 
-Current validation: the production frontend build and 9 backend tests pass; 5 browser checks passed in the previous session. Real Whisper large-v3 inference completed on three public Persian clips (14.9% aggregate word error rate, versus 56.7% for small). The full AI integration check is **not yet passing**: the example did not produce the expected decisions, and the restarted Ollama service currently reports no installed language model despite the previous completed download log. Complete model setup and rerun `scripts/verify-ai.py` before treating the end-to-end AI flow as verified.
+Current validation: the production build, 13 backend tests, four browser tests, and a separate packaged-app UI check pass. Real Whisper large-v3 inference completed on three public Persian clips (14.9% aggregate word error rate, versus 56.7% for small). This small read-speech sample does not establish accuracy on noisy, multi-speaker meetings. Structured extraction checks recovered an explicit decision and a named owner's relative deadline. The bundled audio upload → FFmpeg → Whisper → Ollama → SQLite flow completed in 28.3 seconds, including verification that the original audio was deleted when requested.
+
+Known quality limitation: the language model generated an unsupported action item from the public narration sample. The integration check verifies processing and persistence, not factual correctness of every generated note. Review summaries and action items before relying on them; broader real-meeting evaluation and extraction-quality improvements remain outstanding.
 
 ```sh
 npm run build
